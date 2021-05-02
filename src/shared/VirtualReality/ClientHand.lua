@@ -12,11 +12,9 @@ local VRPosition = require(virtualModules.VRPosition)
 local modelTools = require(modules.ModelTools)
 
 function hand.new(openHandModel, closeHandModel, handEnum, parent)
-	workspace.Bill.SurfaceGui.TextLabel.Text = 'Pre assert'
 	assert(openHandModel, '[ClientHand] hand.new needs a model as it\'s first argument.')
 	assert(openHandModel:IsA('Model'), '[ClientHand] hand.new needs a model as it\'s first argument.')
 	assert(openHandModel.PrimaryPart, '[ClientHand] hand.new needs a model with a PrimaryPart.')
-	workspace.Bill.SurfaceGui.TextLabel.Text = 'Post assert'
 
 	if not parent then --Default parent value
 		parent = workspace
