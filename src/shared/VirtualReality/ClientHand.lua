@@ -12,14 +12,16 @@ local VRPosition = require(virtualModules.VRPosition)
 local modelTools = require(modules.ModelTools)
 
 function hand.new(openHandModel, closeHandModel, handEnum, parent)
+	workspace.Bill.SurfaceGui.TextLabel.Text = 'Pre assert'
 	assert(openHandModel, '[ClientHand] hand.new needs a model as it\'s first argument.')
 	assert(openHandModel:IsA('Model'), '[ClientHand] hand.new needs a model as it\'s first argument.')
 	assert(openHandModel.PrimaryPart, '[ClientHand] hand.new needs a model with a PrimaryPart.')
+	workspace.Bill.SurfaceGui.TextLabel.Text = 'Post assert'
 
 	if not parent then --Default parent value
 		parent = workspace
 	end
-
+		
 	local newHand = {}
 	setmetatable(newHand, hand)
 
@@ -30,28 +32,24 @@ function hand.new(openHandModel, closeHandModel, handEnum, parent)
 	newHand._closeModel = closeHandModel:Clone()
 	newHand._closePrimaryPart = newHand._closeModel.PrimaryPart
 	newHand._handEnum = handEnum
-	newHand._openTracker = Instance.new('Part')
+	newHand._tracker = Instance.new('Part')
 
 	--Declare public latestCFrame
 	newHand.latestCFrame = CFrame.new(0,0,0)
 
-	newHand._openTracker.Size = Vector3.new(1, 1, 1)
-	newHand._openTracker.Anchored = true
-	newHand._openTracker.CanCollide = false
-	newHand._openTracker.Transparency = 1
-	newHand._openTracker.Parent = parent
-
-	newHand._closedTracker = newHand._openTracker:Clone()
-
-	newHand._closedTracker.Parent = parent
+	newHand._tracker.Size = Vector3.new(1, 1, 1)
+	newHand._tracker.Anchored = true
+	newHand._tracker.CanCollide = false
+	newHand._tracker.Transparency = 1
+	newHand._tracker.Parent = parent
 
 	weldModule.weldModel(newHand._openModel)
 	weldModule.weldModel(newHand._closeModel)
 	newHand._openModel.Parent = parent
 	newHand._closeModel.Parent = parent
 
-	newHand._openAlignment = AlignmentClass.new(newHand._openPrimaryPart, newHand._openTracker)
-	newHand._closeAlignment = AlignmentClass.new(newHand._closePrimaryPart, newHand._closedTracker)
+	newHand._openAlignment = AlignmentClass.new(newHand._openPrimaryPart, newHand._tracker)
+	newHand._closeAlignment = AlignmentClass.new(newHand._closePrimaryPart, newHand._tracker)
 
 	newHand.latestCFrame = VRPosition.getPosition(newHand._handEnum)
 	newHand._openModel:SetPrimaryPartCFrame(newHand.latestCFrame)
@@ -76,22 +74,32 @@ end
 
 function hand:updatePosition()
 	self.latestCFrame = VRPosition.getPosition(self._handEnum)
-	self._openTracker.CFrame = self.latestCFrame
-	self._closedTracker.CFrame = self.latestCFrame
+	self._tracker.CFrame = self.latestCFrame
 end
 
-function hand:Destroy() --MAKE SURE TO UPDATE THIS, I'm too tired right now :( ---Note to self, do not write unplanned crucial code while extremely tired at 2 am.--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+function hand:Destroy()
 	self._openAlignment:Destroy()
 	self._openAlignment = nil
+	self._closeAlignment:Destroy()
+	self._closeAlignment = nil
 
 	self._openModel:Destroy()
 	self._openModel = nil
 	self._openPrimaryPart = nil
 
-	self._openTracker:Destroy()
-	self._openTracker = nil
+	self._closeModel:Destroy()
+	self._closeModel = nil
+	self._closePrimaryPart = nil
 
+	self.latestCFrame = nil
+
+	self._tracker:Destroy()
+	self._tracker = nil
+
+	self._handClosed = nil
 	self._handEnum = nil
+
+	setmetatable(self, nil)
 end
 
 return hand

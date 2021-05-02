@@ -2,7 +2,7 @@ local VRService = game:GetService("VRService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local StarterGui = game:GetService("StarterGui")
-local UserInputService = game:GetService("UserInputService")
+local ContextActionService = game:GetService("ContextActionService")
 
 local virtualObjects = ReplicatedStorage.VirtualRealityObjects
 local modules = ReplicatedStorage.Common
@@ -13,6 +13,7 @@ local VRUpdate = remotes.VirtualRealityUpdate
 local hand = require(virtualRealityModules.ClientHand)
 local VRPosition = require(virtualRealityModules.VRPosition)
 
+
 if VRService.VREnabled then
     local leftModelOpen, rightModelOpen = virtualObjects.LeftHandOpened, virtualObjects.RightHandOpened
     local leftModelClose, rightModelClose = virtualObjects.LeftHandClosed, virtualObjects.RightHandClosed
@@ -20,40 +21,36 @@ if VRService.VREnabled then
     StarterGui:SetCore("VRLaserPointerMode", 0)
     StarterGui:SetCore("VREnableControllerModels", false)
 
-    local leftHand, rightHand = hand.new(leftModelOpen, leftModelClose, Enum.UserCFrame.LeftHand), hand.new(rightModelOpen, leftModelClose, Enum.UserCFrame.RightHand)
+
+    local leftHand, rightHand = hand.new(leftModelOpen, leftModelClose, Enum.UserCFrame.LeftHand), hand.new(rightModelOpen, rightModelClose, Enum.UserCFrame.RightHand)
+
 
     local function updatePosition()
-        leftHand:updatePosition()
         rightHand:updatePosition()
+        leftHand:updatePosition()
+    end
+
+    local function closeHandle(name, inputState, inputObject)
+        local inputHand
+
+        if name == 'LeftHandClose' then
+            inputHand = leftHand
+        elseif name == 'RightHandClose' then
+            inputHand = rightHand
+        end
+
+        if inputState == Enum.UserInputState.Begin then
+            inputHand:closeHand()
+        elseif inputState == Enum.UserInputState.End then
+            inputHand:openHand()
+        end
     end
 
     RunService:BindToRenderStep('UpdatePosition', 100, updatePosition)
 
-    UserInputService.InputBegan:Connect(function(input)
-        if input.KeyCode == Enum.KeyCode.ButtonR1 then
-            --Fire server logic here
-            rightHand:closeHand()
-        elseif input.KeyCode == Enum.KeyCode.ButtonL1 then
-            leftHand:closeHand()
-        end
-    end)
+    ContextActionService:BindAction('LeftHandClose', closeHandle, false, Enum.KeyCode.ButtonL1)
+    ContextActionService:BindAction('RightHandClose', closeHandle, false, Enum.KeyCode.ButtonR1)
 
-    UserInputService.InputEnded:Connect(function(input)
-        if input.KeyCode == Enum.KeyCode.ButtonR1 then
-            --Fire server logic here
-            rightHand:openHand()
-        elseif input.KeyCode == Enum.KeyCode.ButtonL1 then
-            leftHand:openHand()
-        end
-    end)
-
-    --Send position information to the server
-    --[[coroutine.wrap(function()
-        while true do
-            VRUpdate:FireServer({head = VRPosition.getPosition(Enum.UserCFrame.Head), right = rightHand.latestCFrame, left = leftHand.latestCFrame})
-            wait(0.05)
-        end
-    end)()]]
 
 end
 

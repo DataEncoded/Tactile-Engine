@@ -1,7 +1,7 @@
 local module = {}
 
 function module.setPropertyOfPartType(model, partType, property, value)
-    assert(model and model:IsA('model'), '[ModelTools] setPropertyOfPartType requires a model as first arguement.')
+    assert(model and model:IsA('Model'), '[ModelTools] setPropertyOfPartType requires a model as first arguement.')
     assert(partType and type(partType) == 'string', '[ModelTools] setPropertyOfPartType requires a string as second arguement')
     assert(property and type(property) == 'string', '[ModelTools] setPropertyOfPartType requires a string as thire arguement')
 
