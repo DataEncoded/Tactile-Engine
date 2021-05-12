@@ -3,9 +3,13 @@ local remotes = ReplicatedStorage.Remotes
 
 local virtualRealityPlayers = {}
 
-local updatePlayers, getPlayers = remotes.UpdatePlayers, remotes.GetPlayers
+local updatePlayers, getPlayers, virtualUpdate = remotes.UpdatePlayers, remotes.GetPlayers, remotes.VirtualRealityUpdate
 
 
+--VR Replication Logic
+virtualUpdate.OnServerEvent:Connect(function(player, positions)
+    
+end)
 
 --VR player invisibility logic
 --Update players logic

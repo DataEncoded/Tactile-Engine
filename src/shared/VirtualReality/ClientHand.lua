@@ -11,7 +11,7 @@ local weldModule = require(modules.WeldModule)
 local VRPosition = require(virtualModules.VRPosition)
 local modelTools = require(modules.ModelTools)
 
-function hand.new(openHandModel, closeHandModel, handEnum, parent)
+function hand.new(openHandModel, closeHandModel, starterPosition, parent)
 	assert(openHandModel, '[ClientHand] hand.new needs a model as it\'s first argument.')
 	assert(openHandModel:IsA('Model'), '[ClientHand] hand.new needs a model as it\'s first argument.')
 	assert(openHandModel.PrimaryPart, '[ClientHand] hand.new needs a model with a PrimaryPart.')
@@ -29,7 +29,6 @@ function hand.new(openHandModel, closeHandModel, handEnum, parent)
 	newHand._openPrimaryPart = newHand._openModel.PrimaryPart
 	newHand._closeModel = closeHandModel:Clone()
 	newHand._closePrimaryPart = newHand._closeModel.PrimaryPart
-	newHand._handEnum = handEnum
 	newHand._tracker = Instance.new('Part')
 
 	--Declare public latestCFrame
@@ -49,7 +48,7 @@ function hand.new(openHandModel, closeHandModel, handEnum, parent)
 	newHand._openAlignment = AlignmentClass.new(newHand._openPrimaryPart, newHand._tracker)
 	newHand._closeAlignment = AlignmentClass.new(newHand._closePrimaryPart, newHand._tracker)
 
-	newHand.latestCFrame = VRPosition.getPosition(newHand._handEnum)
+	newHand.latestCFrame = starterPosition
 	newHand._openModel:SetPrimaryPartCFrame(newHand.latestCFrame)
 	newHand._closeModel:SetPrimaryPartCFrame(newHand.latestCFrame)
 
@@ -70,8 +69,8 @@ function hand:closeHand()
 	modelTools.setPropertyOfPartType(self._closeModel, 'BasePart', 'Transparency', 0)
 end
 
-function hand:updatePosition()
-	self.latestCFrame = VRPosition.getPosition(self._handEnum)
+function hand:updatePosition(position)
+	self.latestCFrame = position
 	self._tracker.CFrame = self.latestCFrame
 end
 
@@ -95,7 +94,6 @@ function hand:Destroy()
 	self._tracker = nil
 
 	self._handClosed = nil
-	self._handEnum = nil
 
 	setmetatable(self, nil)
 end

@@ -12,25 +12,27 @@ local VRUpdate = remotes.VirtualRealityUpdate
 
 local hand = require(virtualRealityModules.ClientHand)
 local VRPosition = require(virtualRealityModules.VRPosition)
+local networkClient = require(virtualRealityModules.NetworkClient)
 
+local leftModelOpen, rightModelOpen = virtualObjects.LeftHandOpened, virtualObjects.RightHandOpened
+local leftModelClose, rightModelClose = virtualObjects.LeftHandClosed, virtualObjects.RightHandClosed
+local headModel = virtualObjects.Head
 
 if VRService.VREnabled then
-    local leftModelOpen, rightModelOpen = virtualObjects.LeftHandOpened, virtualObjects.RightHandOpened
-    local leftModelClose, rightModelClose = virtualObjects.LeftHandClosed, virtualObjects.RightHandClosed
 
     StarterGui:SetCore("VRLaserPointerMode", 0)
     StarterGui:SetCore("VREnableControllerModels", false)
 
 
-    local leftHand, rightHand = hand.new(leftModelOpen, leftModelClose, Enum.UserCFrame.LeftHand), hand.new(rightModelOpen, rightModelClose, Enum.UserCFrame.RightHand)
+    local leftHand, rightHand = hand.new(leftModelOpen, leftModelClose, VRPosition.getPosition(Enum.UserCFrame.LeftHand)), hand.new(rightModelOpen, rightModelClose, VRPosition.getPosition(Enum.UserCFrame.RightHand))
 
 
     local function updatePosition()
-        rightHand:updatePosition()
-        leftHand:updatePosition()
+        rightHand:updatePosition(VRPosition.getPosition(Enum.UserCFrame.RightHand))
+        leftHand:updatePosition(VRPosition.getPosition(Enum.UserCFrame.LeftHand))
     end
 
-    local function closeHandle(name, inputState, inputObject)
+    local function closeHandle(name, inputState, _)
         local inputHand
 
         if name == 'LeftHandClose' then
@@ -51,6 +53,16 @@ if VRService.VREnabled then
     ContextActionService:BindAction('LeftHandClose', closeHandle, false, Enum.KeyCode.ButtonL1)
     ContextActionService:BindAction('RightHandClose', closeHandle, false, Enum.KeyCode.ButtonR1)
 
+    local function replicate()
+        while true do
+            wait(0.05)
+            local positions = {Left = leftHand.latestCFrame, Right = rightHand.latestCFrame, Head = VRPosition.getPosition(Enum.UserCFrame.Head)}
+
+            VRUpdate:FireServer(positions)
+        end
+    end
+
+    coroutine.wrap(replicate)()
 
 end
 
@@ -58,10 +70,17 @@ end
 
 local VRPlayers = {}
 
-VRUpdate.OnClientEvent:Connect(function(user, positions)
+VRUpdate.OnClientEvent:Connect(function(user, actionType, ...)
     if user ~= game.Players.LocalPlayer then
-        if not VRPlayers[user] then
-            
+        if actionType == 'position' then
+            if not VRPlayers[user] then
+                --Temporary head until asset is made
+                VRPlayers[user] = networkClient.new(user, leftModelOpen, leftModelClose, rightModelOpen, rightModelClose, headModel, ...)
+            else
+                VRPlayers[user]:updatePosition(...)
+            end
+        elseif actionType == 'handClose' then
+            --Place holder for closing hands
         end
     end
 end)
