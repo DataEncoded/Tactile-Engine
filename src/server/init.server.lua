@@ -8,7 +8,7 @@ local updatePlayers, getPlayers, virtualUpdate = remotes.UpdatePlayers, remotes.
 
 --VR Replication Logic
 virtualUpdate.OnServerEvent:Connect(function(player, positions)
-    
+    virtualUpdate:FireAllClients(player, 'position', positions)
 end)
 
 --VR player invisibility logic

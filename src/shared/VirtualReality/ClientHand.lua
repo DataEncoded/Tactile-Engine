@@ -23,7 +23,7 @@ function hand.new(openHandModel, closeHandModel, starterPosition, parent)
 	local newHand = {}
 	setmetatable(newHand, hand)
 
-	newHand._handClosed = false
+	newHand.handClosed = false
 
 	newHand._openModel = openHandModel:Clone()
 	newHand._openPrimaryPart = newHand._openModel.PrimaryPart
@@ -51,19 +51,20 @@ function hand.new(openHandModel, closeHandModel, starterPosition, parent)
 	newHand.latestCFrame = starterPosition
 	newHand._openModel:SetPrimaryPartCFrame(newHand.latestCFrame)
 	newHand._closeModel:SetPrimaryPartCFrame(newHand.latestCFrame)
+	newHand._tracker.CFrame = newHand.latestCFrame
 
 	return newHand
 end
 
 function hand:openHand()
-	self._handClosed = false
+	self.handClosed = false
 
 	modelTools.setPropertyOfPartType(self._openModel, 'BasePart', 'Transparency', 0)
 	modelTools.setPropertyOfPartType(self._closeModel, 'BasePart', 'Transparency', 1)
 end
 
 function hand:closeHand()
-	self._handClosed = true
+	self.handClosed = true
 
 	modelTools.setPropertyOfPartType(self._openModel, 'BasePart', 'Transparency', 1)
 	modelTools.setPropertyOfPartType(self._closeModel, 'BasePart', 'Transparency', 0)
@@ -93,7 +94,7 @@ function hand:Destroy()
 	self._tracker:Destroy()
 	self._tracker = nil
 
-	self._handClosed = nil
+	self.handClosed = nil
 
 	setmetatable(self, nil)
 end

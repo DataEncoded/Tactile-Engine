@@ -26,6 +26,8 @@ if VRService.VREnabled then
 
     local leftHand, rightHand = hand.new(leftModelOpen, leftModelClose, VRPosition.getPosition(Enum.UserCFrame.LeftHand)), hand.new(rightModelOpen, rightModelClose, VRPosition.getPosition(Enum.UserCFrame.RightHand))
 
+    leftHand:openHand()
+    rightHand:openHand()
 
     local function updatePosition()
         rightHand:updatePosition(VRPosition.getPosition(Enum.UserCFrame.RightHand))
@@ -56,7 +58,7 @@ if VRService.VREnabled then
     local function replicate()
         while true do
             wait(0.05)
-            local positions = {Left = leftHand.latestCFrame, Right = rightHand.latestCFrame, Head = VRPosition.getPosition(Enum.UserCFrame.Head)}
+            local positions = {Left = leftHand.latestCFrame, Right = rightHand.latestCFrame, Head = VRPosition.getPosition(Enum.UserCFrame.Head), leftOpen = leftHand.handClosed, rightOpen = rightHand.handClosed}
 
             VRUpdate:FireServer(positions)
         end
@@ -76,6 +78,9 @@ VRUpdate.OnClientEvent:Connect(function(user, actionType, ...)
             if not VRPlayers[user] then
                 --Temporary head until asset is made
                 VRPlayers[user] = networkClient.new(user, leftModelOpen, leftModelClose, rightModelOpen, rightModelClose, headModel, ...)
+                if user.Character then
+                    user.Character.Parent = ReplicatedStorage
+                end
             else
                 VRPlayers[user]:updatePosition(...)
             end
@@ -83,4 +88,13 @@ VRUpdate.OnClientEvent:Connect(function(user, actionType, ...)
             --Place holder for closing hands
         end
     end
+end)
+
+--Invisibility logic
+game.Players.PlayerAdded:Connect(function(p)
+    p.CharacterAdded:Connect(function(c)
+        if VRPlayers[p] then
+            c.Parent = ReplicatedStorage
+        end
+    end)
 end)
