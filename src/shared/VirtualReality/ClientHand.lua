@@ -2,6 +2,8 @@ local hand = {}
 hand.__index = hand
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local CollectionService = game:GetService("CollectionService")
+local VRService = game:GetService("VRService")
 local modules = ReplicatedStorage.Common
 local virtualModules = ReplicatedStorage.Common.VirtualReality
 
@@ -59,15 +61,38 @@ end
 function hand:openHand()
 	self.handClosed = false
 
-	modelTools.setPropertyOfPartType(self._openModel, 'BasePart', 'Transparency', 0)
-	modelTools.setPropertyOfPartType(self._closeModel, 'BasePart', 'Transparency', 1)
+	modelTools.setPropertyOfPartType(self._openModel, 'BasePart', 'Transparency', 0, 'Hitbox')
+	modelTools.setPropertyOfPartType(self._closeModel, 'BasePart', 'Transparency', 1, 'Hitbox')
+
+	self._openModel.Hitbox:ClearAllChildren()
 end
 
 function hand:closeHand()
 	self.handClosed = true
 
-	modelTools.setPropertyOfPartType(self._openModel, 'BasePart', 'Transparency', 1)
-	modelTools.setPropertyOfPartType(self._closeModel, 'BasePart', 'Transparency', 0)
+	modelTools.setPropertyOfPartType(self._openModel, 'BasePart', 'Transparency', 1, 'Hitbox')
+	modelTools.setPropertyOfPartType(self._closeModel, 'BasePart', 'Transparency', 0, 'Hitbox')
+
+	local hitbox = self._openModel.Hitbox
+
+	local touchCheck = hitbox.Touched:Connect(function() end)
+
+	local touching = hitbox:GetTouchingParts()
+
+	touchCheck:Disconnect()
+	touchCheck = nil
+	
+	for _, v in ipairs(touching) do
+		if CollectionService:HasTag(v, "Grabbable") then
+			local weld = Instance.new('WeldConstraint')
+			weld.Part0 = hitbox
+			weld.Part1 = v
+			weld.Parent = hitbox
+			modelTools.setPropertyOfPartType(v, 'BasePart', 'CanCollide', false)
+		end
+	end
+
+
 end
 
 function hand:updatePosition(position)

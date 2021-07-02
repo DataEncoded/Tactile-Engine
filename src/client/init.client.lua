@@ -84,8 +84,6 @@ VRUpdate.OnClientEvent:Connect(function(user, actionType, ...)
             else
                 VRPlayers[user]:updatePosition(...)
             end
-        elseif actionType == 'handClose' then
-            --Place holder for closing hands
         end
     end
 end)

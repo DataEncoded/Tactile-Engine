@@ -54,7 +54,7 @@ function networkClient:updatePosition(starterPositionTable)
         self:handGrip(self._leftHand, starterPositionTable.leftOpen)
     end
     if starterPositionTable.rightOpen ~= self._rightHand.handClosed then
-        self:handGrip(self._rightHand, starterPositionTable.leftOpen)
+        self:handGrip(self._rightHand, starterPositionTable.rightOpen)
     end
 end
 
